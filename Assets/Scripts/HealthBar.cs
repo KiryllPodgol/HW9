@@ -37,4 +37,18 @@ public class HealthBar : MonoBehaviour
         currentHealth = health;
         UpdateHearts(); // Обновляем отображение сердечек при установке максимального здоровья
     }
+
+    public void AddHeart() // Метод для добавления сердца
+    {
+        if (maxHealth < hearts.Length) // Проверяем, не превышает ли максимальное количество жизней количество сердечек
+        {
+            maxHealth++; // Увеличиваем максимальное здоровье
+            SetMaxHealth(maxHealth); // Устанавливаем новое максимальное здоровье
+            Debug.Log($"Added a heart! Current max health: {maxHealth}");
+        }
+        else
+        {
+            Debug.Log("Max health reached. Cannot add more hearts.");
+        }
+    }
 }

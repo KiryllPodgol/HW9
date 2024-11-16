@@ -2,10 +2,9 @@ using UnityEngine;
 
 public class CharacterControll : MonoBehaviour
 {
- 
     public float Speed = 3f; // Скорость передвижения
     public float jumpForce = 15f; // Сила прыжка
-    public int lives = 3;
+    public int lives = 3; // Текущие жизни
 
     private Rigidbody2D rb;
     private Animator animator;
@@ -103,6 +102,14 @@ public class CharacterControll : MonoBehaviour
         {
             Die(); // Вызываем метод смерти
         }
+    }
+
+    public void AddLives(int amount)
+    {
+        lives += amount; // Увеличиваем количество жизней
+        Debug.Log($"Lives increased! Current lives: {lives}");
+
+        // Здесь вы можете добавить логику для обновления UI или других элементов игры.
     }
 
     void CheckGround()

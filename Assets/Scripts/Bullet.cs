@@ -3,15 +3,17 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     private GameObject _parent;
-    public GameObject Parent { set { _parent = value; } get { return _parent; } }
+    public GameObject Parent { set => _parent = value;
+        get => _parent;
+    }
 
     private float _speed = 10.0F;
     private Vector3 _direction;
-    public Vector3 Direction { set { _direction = value; } }
+    public Vector3 Direction { set => _direction = value; }
 
     public Color Color
     {
-        set { _sprite.color = value; }
+        set => _sprite.color = value;
     }
 
     private SpriteRenderer _sprite;

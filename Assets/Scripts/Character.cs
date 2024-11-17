@@ -1,5 +1,6 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Для работы с загрузкой сцен
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class Character : Unit
 {
@@ -12,40 +13,40 @@ public class Character : Unit
         set
         {
             if (value < 3) lives = value;
-            HealthBar.TakeDamage(lives - value); // Обновление здоровья
+            healthBar.TakeDamage(lives - value); // Обновление здоровья
         }
     }
 
-    public HealthBar HealthBar;
+    [FormerlySerializedAs("HealthBar")] public HealthBar healthBar;
     public DeathScreen deathScreen; 
 
     public float speed = 3.0F;
-    private float jumpForce = 15.0F;
-    private bool isGrounded = false;
-    private Bullet bullet;
+    private float _jumpForce = 15.0F;
+    private bool _isGrounded = false;
+    private Bullet _bullet;
 
     private CharState State
     {
-        get { return (CharState)animator.GetInteger("State"); }
-        set { animator.SetInteger("State", (int)value); }
+        get { return (CharState)_animator.GetInteger("State"); }
+        set { _animator.SetInteger("State", (int)value); }
     }
 
-    new private Rigidbody2D rigidbody;
-    private Animator animator;
-    private SpriteRenderer sprite;
+   private Rigidbody2D _rigidbody;
+    private Animator _animator;
+    private SpriteRenderer _sprite;
 
     private void Awake()
     {
-        HealthBar = FindFirstObjectByType<HealthBar>();
-        if (HealthBar == null)
+        healthBar = FindFirstObjectByType<HealthBar>();
+        if (healthBar == null)
         {
         
         }
-        rigidbody = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
-        sprite = GetComponentInChildren<SpriteRenderer>();
+        _rigidbody = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<Animator>();
+        _sprite = GetComponentInChildren<SpriteRenderer>();
 
-        bullet = Resources.Load<Bullet>("Bullet");
+        _bullet = Resources.Load<Bullet>("Bullet");
 
         deathScreen = FindFirstObjectByType<DeathScreen>();
         if (deathScreen == null)
@@ -61,11 +62,11 @@ public class Character : Unit
 
     private void Update()
     {
-        if (isGrounded) State = CharState.Idle;
+        if (_isGrounded) State = CharState.Idle;
 
         if (Input.GetButtonDown("Fire1")) Shoot();
         if (Input.GetButton("Horizontal")) Move();
-        if (isGrounded && Input.GetButtonDown("Jump")) Jump();
+        if (_isGrounded && Input.GetButtonDown("Jump")) Jump();
 
         // Проверка на падение с платформы
         if (transform.position.y < -12)
@@ -80,28 +81,28 @@ public class Character : Unit
 
         transform.position = Vector3.MoveTowards(transform.position, transform.position + direction, speed * Time.deltaTime);
 
-        sprite.flipX = direction.x < 0.0F;
+        _sprite.flipX = direction.x < 0.0F;
 
-        if (isGrounded) State = CharState.Move;
+        if (_isGrounded) State = CharState.Move;
     }
 
     private void Jump()
     {
-        rigidbody.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+        _rigidbody.AddForce(transform.up * _jumpForce, ForceMode2D.Impulse);
     }
 
     private void Shoot()
     {
         Vector3 position = transform.position; position.y += 0.8F;
-        Bullet newBullet = Instantiate(bullet, position, bullet.transform.rotation) as Bullet;
+        Bullet newBullet = Instantiate(_bullet, position, _bullet.transform.rotation) as Bullet;
 
         newBullet.Parent = gameObject;
-        newBullet.Direction = newBullet.transform.right * (sprite.flipX ? -1.0F : 1.0F);
+        newBullet.Direction = newBullet.transform.right * (_sprite.flipX ? -1.0F : 1.0F);
     }
 
     public override void ReceiveDamage()
     {
-        HealthBar.TakeDamage(1); // Уменьшаем здоровье на 1
+        healthBar.TakeDamage(1); // Уменьшаем здоровье на 1
 
         lives--; // Уменьшаем количество жизней
 
@@ -111,19 +112,19 @@ public class Character : Unit
             return; 
         }
 
-        rigidbody.linearVelocity = Vector2.zero; // Останавливаем движение
-        rigidbody.AddForce(transform.up * 8.0F, ForceMode2D.Impulse);
+        _rigidbody.linearVelocity = Vector2.zero; // Останавливаем движение
+        _rigidbody.AddForce(transform.up * 8.0F, ForceMode2D.Impulse);
 
-        Debug.Log(lives);
+        
     }
 
     private void CheckGround()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.3F);
 
-        isGrounded = colliders.Length > 1;
+        _isGrounded = colliders.Length > 1;
 
-        if (!isGrounded) State = CharState.Jump;
+        if (!_isGrounded) State = CharState.Jump;
     }
 
     public void OnTriggerEnter2D(Collider2D collider)

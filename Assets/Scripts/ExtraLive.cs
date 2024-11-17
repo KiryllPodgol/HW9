@@ -2,25 +2,15 @@ using UnityEngine;
 
 public class ExtraLife : MonoBehaviour
 {
-    public int lifeAmount = 1; 
-
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter2D(Collider2D collider)
     {
-        // Проверяем, является ли объект персонажем
-        CharacterControll character = other.GetComponent<CharacterControll>();
-        if (character != null)
+        Character character = collider.GetComponent<Character>();
+
+        if (character)
         {
-            
-            character.AddLives(lifeAmount);
-
-            
-            if (character.healthBar != null)
-            {
-                character.healthBar.AddHeart(); 
-            }
-
-         
+            character.Lives++;
             Destroy(gameObject);
         }
     }
 }
+

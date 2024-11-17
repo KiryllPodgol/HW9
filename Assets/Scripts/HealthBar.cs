@@ -2,49 +2,48 @@ using UnityEngine;
 
 public class HealthBar : MonoBehaviour
 {
-    public GameObject[] hearts; // ћассив сердечек
-    private int maxHealth; // ћаксимальное здоровье
-    private int currentHealth; // “екущее здоровье
+    public GameObject[] hearts; 
+    private int _maxHealth; 
+    private int _currentHealth;
 
     void Start()
     {
-        maxHealth = hearts.Length; // ”станавливаем максимальное здоровье равным количеству сердечек
-        currentHealth = maxHealth; // »нициализируем текущее здоровье на максимальное
-        UpdateHearts(); // ќбновл€ем отображение сердечек при старте
+        _maxHealth = hearts.Length; 
+        _currentHealth = _maxHealth; 
+        UpdateHearts(); 
     }
 
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage; // ”меньшаем текущее здоровье
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // ќграничиваем здоровье от 0 до maxHealth
-
-        UpdateHearts(); // ќбновл€ем отображение сердечек
+        _currentHealth -= damage; 
+        _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth); 
+        UpdateHearts();
     }
 
     private void UpdateHearts()
     {
         for (int i = 0; i < hearts.Length; i++)
         {
-            hearts[i].SetActive(i < currentHealth); // јктивируем или деактивируем сердечки в зависимости от текущего здоровь€
+            hearts[i].SetActive(i < _currentHealth);
         }
     }
 
-    public int CurrentHealth => currentHealth; // —войство дл€ получени€ текущего здоровь€
+    public int CurrentHealth => _currentHealth; 
 
     public void SetMaxHealth(int health)
     {
-        maxHealth = health;
-        currentHealth = health;
-        UpdateHearts(); // ќбновл€ем отображение сердечек при установке максимального здоровь€
+        _maxHealth = health;
+        _currentHealth = Mathf.Min(health, _currentHealth);
+        UpdateHearts(); 
     }
 
-    public void AddHeart() // ћетод дл€ добавлени€ сердца
+    public void AddHeart() 
     {
-        if (maxHealth < hearts.Length) // ѕровер€ем, не превышает ли максимальное количество жизней количество сердечек
+        if (_maxHealth < hearts.Length - 1) 
         {
-            maxHealth++; // ”величиваем максимальное здоровье
-            SetMaxHealth(maxHealth); // ”станавливаем новое максимальное здоровье
-            Debug.Log($"Added a heart! Current max health: {maxHealth}");
+            _maxHealth++; 
+            SetMaxHealth(_maxHealth); 
+            Debug.Log($"Added a heart! Current max health: {_maxHealth}");
         }
         else
         {

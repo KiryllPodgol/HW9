@@ -1,31 +1,18 @@
 using UnityEngine;
-using UnityEngine.TextCore.Text;
+using System.Collections;
 
-public class SharpRock : MonoBehaviour
+public class Obstacle : MonoBehaviour
 {
-     
-    public float knockbackForce = 5f; // Сила отбрасывания
-
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter2D(Collider2D collider)
     {
-        // Проверяем, является ли объект персонажем
-        if (other.CompareTag("Player"))
+        Character character = collider.gameObject.GetComponent<Character>();
+        if (character != null)
         {
-            // Получаем компонент Character (или ваш класс персонажа)
-            CharacterControll character = other.GetComponent<CharacterControll>();
-            if (character != null)
-            {
-                // Наносим урон персонажу
-                character.TakeDamage(1);
-
-                // Определяем направление отбрасывания
-                Vector2 knockbackDirection = (other.transform.position - transform.position).normalized;
-                Rigidbody2D rb = other.GetComponent<Rigidbody2D>();
-                if (rb != null)
-                {
-                    rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
-                }
-            }
+            character.ReceiveDamage();
+        }
+        else
+        {
+            Debug.LogError("Character script not found on the collided GameObject");
         }
     }
 }

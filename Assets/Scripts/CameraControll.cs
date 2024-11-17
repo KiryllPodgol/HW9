@@ -11,7 +11,7 @@ public class CameraControl : MonoBehaviour
         // Если цель не задана, ищем первый объект типа Character в сцене
         if (!target)
         {
-            target = FindFirstObjectByType<CharacterControll>().transform;
+            target = FindFirstObjectByType<Character>().transform;
         }
     }
 

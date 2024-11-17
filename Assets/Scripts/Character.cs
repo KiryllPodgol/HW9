@@ -6,6 +6,7 @@ public class Character : Unit
 {
     [SerializeField]
     private int lives = 3;
+    public Transform respawnPoint;
 
     public int Lives
     {
@@ -13,12 +14,12 @@ public class Character : Unit
         set
         {
             if (value < 3) lives = value;
-            healthBar.TakeDamage(lives - value); // Обновление здоровья
+            healthBar.TakeDamage(lives - value);
         }
     }
 
     [FormerlySerializedAs("HealthBar")] public HealthBar healthBar;
-    public DeathScreen deathScreen; 
+    public DeathScreen deathScreen;
 
     public float speed = 3.0F;
     private float _jumpForce = 15.0F;
@@ -31,7 +32,7 @@ public class Character : Unit
         set { _animator.SetInteger("State", (int)value); }
     }
 
-   private Rigidbody2D _rigidbody;
+    private Rigidbody2D _rigidbody;
     private Animator _animator;
     private SpriteRenderer _sprite;
 
@@ -40,7 +41,7 @@ public class Character : Unit
         healthBar = FindFirstObjectByType<HealthBar>();
         if (healthBar == null)
         {
-        
+            
         }
         _rigidbody = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
@@ -51,7 +52,7 @@ public class Character : Unit
         deathScreen = FindFirstObjectByType<DeathScreen>();
         if (deathScreen == null)
         {
- 
+           
         }
     }
 
@@ -71,7 +72,8 @@ public class Character : Unit
         // Проверка на падение с платформы
         if (transform.position.y < -12)
         {
-            PlayerDied();
+            ReceiveDamage(); // Вызываем метод ReceiveDamage при падении
+            Respawn(); // Возвращаем на точку респавна после получения урона
         }
     }
 
@@ -104,18 +106,16 @@ public class Character : Unit
     {
         healthBar.TakeDamage(1); // Уменьшаем здоровье на 1
 
-        lives--; // Уменьшаем количество жизней
+        Lives--; // Уменьшаем количество жизней
 
         if (lives <= 0)
         {
-            deathScreen.PlayerDied();
-            return; 
+            PlayerDied(); // Вызываем метод PlayerDied, если жизни закончились
+            return;
         }
 
         _rigidbody.linearVelocity = Vector2.zero; // Останавливаем движение
         _rigidbody.AddForce(transform.up * 8.0F, ForceMode2D.Impulse);
-
-        
     }
 
     private void CheckGround()
@@ -133,6 +133,15 @@ public class Character : Unit
         if (bullet && bullet.Parent != gameObject)
         {
             ReceiveDamage(); // Обработка урона от пули
+            Respawn(); // Возвращаем на точку респавна после получения урона от пули
+            return;
+        }
+
+        ExtraLife extraLife = collider.gameObject.GetComponent<ExtraLife>();
+        if (extraLife)
+        {
+            Lives++; // Увеличиваем жизни при столкновении с объектом ExtraLife
+            Destroy(extraLife.gameObject); // Уничтожаем объект ExtraLife после сбора
         }
     }
 
@@ -140,25 +149,28 @@ public class Character : Unit
     {
         if (deathScreen != null)
         {
-            
             deathScreen.PlayerDied(); // Вызываем экран смерти
             Time.timeScale = 0; // Останавливаем время при смерти
-         
-            return; // Прерываем выполнение метода после вызова экрана смерти
+            return;
         }
-
 
         Time.timeScale = 1; // Устанавливаем time scale в 1 только если deathScreen отсутствует
     }
 
+    private void Respawn()
+    {
+        if (respawnPoint != null)
+        {
+            transform.position = respawnPoint.position; // Перемещаем персонажа на позицию респавна
+            _rigidbody.linearVelocity = Vector2.zero; // Сбрасываем скорость
+        }
+    }
+
     public void RestartGame()
     {
-        
-        Time.timeScale = 1; 
-        lives = 3; 
-       
-
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
+        Time.timeScale = 1;
+        lives = 3;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
 

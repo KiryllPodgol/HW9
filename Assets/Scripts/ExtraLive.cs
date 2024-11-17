@@ -8,9 +8,8 @@ public class ExtraLife : MonoBehaviour
 
         if (character)
         {
-            character.Lives++;
-            Destroy(gameObject);
+            character.Lives++; // Увеличиваем жизни у персонажа
+            Destroy(gameObject); // Уничтожаем объект ExtraLife после сбора
         }
     }
 }
-

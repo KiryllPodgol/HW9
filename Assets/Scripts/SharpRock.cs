@@ -12,7 +12,7 @@ public class Obstacle : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Character script not found on the collided GameObject");
+          
         }
     }
 }

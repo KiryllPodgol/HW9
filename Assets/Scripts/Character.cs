@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;
+using UnityEngine.SceneManagement; // Для работы с загрузкой сцен
 
 public class Character : Unit
 {
@@ -12,18 +12,16 @@ public class Character : Unit
         set
         {
             if (value < 3) lives = value;
-            HealthBar.TakeDamage(lives - value); // ��������� ��������
+            HealthBar.TakeDamage(lives - value); // Обновление здоровья
         }
     }
+
     public HealthBar HealthBar;
+    public DeathScreen deathScreen; 
 
-   
     public float speed = 3.0F;
-   
     private float jumpForce = 15.0F;
-
     private bool isGrounded = false;
-
     private Bullet bullet;
 
     private CharState State
@@ -41,15 +39,20 @@ public class Character : Unit
         HealthBar = FindFirstObjectByType<HealthBar>();
         if (HealthBar == null)
         {
-            Debug.LogError("HealthBar not found!");
+        
         }
         rigidbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         sprite = GetComponentInChildren<SpriteRenderer>();
 
         bullet = Resources.Load<Bullet>("Bullet");
-    }
 
+        deathScreen = FindFirstObjectByType<DeathScreen>();
+        if (deathScreen == null)
+        {
+ 
+        }
+    }
 
     private void FixedUpdate()
     {
@@ -63,6 +66,12 @@ public class Character : Unit
         if (Input.GetButtonDown("Fire1")) Shoot();
         if (Input.GetButton("Horizontal")) Move();
         if (isGrounded && Input.GetButtonDown("Jump")) Jump();
+
+        // Проверка на падение с платформы
+        if (transform.position.y < -12)
+        {
+            PlayerDied();
+        }
     }
 
     private void Move()
@@ -92,9 +101,17 @@ public class Character : Unit
 
     public override void ReceiveDamage()
     {
-        HealthBar.TakeDamage(1); // ��������� �������� �� 1
+        HealthBar.TakeDamage(1); // Уменьшаем здоровье на 1
 
-        rigidbody.linearVelocity = Vector3.zero;
+        lives--; // Уменьшаем количество жизней
+
+        if (lives <= 0)
+        {
+            deathScreen.PlayerDied();
+            return; 
+        }
+
+        rigidbody.linearVelocity = Vector2.zero; // Останавливаем движение
         rigidbody.AddForce(transform.up * 8.0F, ForceMode2D.Impulse);
 
         Debug.Log(lives);
@@ -114,8 +131,33 @@ public class Character : Unit
         Bullet bullet = collider.gameObject.GetComponent<Bullet>();
         if (bullet && bullet.Parent != gameObject)
         {
-            HealthBar.TakeDamage(1); 
+            ReceiveDamage(); // Обработка урона от пули
         }
+    }
+
+    private void PlayerDied()
+    {
+        if (deathScreen != null)
+        {
+            
+            deathScreen.PlayerDied(); // Вызываем экран смерти
+            Time.timeScale = 0; // Останавливаем время при смерти
+         
+            return; // Прерываем выполнение метода после вызова экрана смерти
+        }
+
+
+        Time.timeScale = 1; // Устанавливаем time scale в 1 только если deathScreen отсутствует
+    }
+
+    public void RestartGame()
+    {
+        
+        Time.timeScale = 1; 
+        lives = 3; 
+       
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
     }
 }
 

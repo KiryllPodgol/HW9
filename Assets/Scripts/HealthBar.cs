@@ -1,22 +1,23 @@
+using System;
 using UnityEngine;
 
 public class HealthBar : MonoBehaviour
 {
-    public GameObject[] hearts; 
-    private int _maxHealth; 
+    public GameObject[] hearts;
+    private int _maxHealth;
     private int _currentHealth;
 
     void Start()
     {
-        _maxHealth = hearts.Length; 
-        _currentHealth = _maxHealth; 
-        UpdateHearts(); 
+        _maxHealth = hearts.Length;
+        _currentHealth = _maxHealth;
+        UpdateHearts();
     }
 
     public void TakeDamage(int damage)
     {
-        _currentHealth -= damage; 
-        _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth); 
+        _currentHealth -= damage;
+        _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth);
         UpdateHearts();
     }
 
@@ -28,26 +29,26 @@ public class HealthBar : MonoBehaviour
         }
     }
 
-    public int CurrentHealth => _currentHealth; 
+    public int CurrentHealth => _currentHealth;
 
     public void SetMaxHealth(int health)
     {
         _maxHealth = health;
         _currentHealth = Mathf.Min(health, _currentHealth);
-        UpdateHearts(); 
+        UpdateHearts();
     }
 
-    public void AddHeart() 
+    public void AddHeart()
     {
-        if (_maxHealth < hearts.Length - 1) 
+        if (_maxHealth < hearts.Length - 1)
         {
-            _maxHealth++; 
-            SetMaxHealth(_maxHealth); 
-            Debug.Log($"Added a heart! Current max health: {_maxHealth}");
+            _maxHealth++;
+            SetMaxHealth(_maxHealth);
+  
         }
         else
         {
-            Debug.Log("Max health reached. Cannot add more hearts.");
+
         }
     }
 }

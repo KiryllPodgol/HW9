@@ -4,20 +4,20 @@ using System.Collections;
 public class MovedMonster : Unit
 {
     public float speed = 2.0F;
-    public Transform[] points; // ������ ����� ��� ��������
-    public float visionRadius = 5.0F; // ������ ��������� �������
-    public LayerMask groundLayer; // ���� ����� ��� ��������
-    public Animator animator; // ������ �� ��������� Animator
+    public Transform[] points;
+    public float visionRadius = 5.0F;
+    public LayerMask groundLayer;
+    public Animator animator;
+
+
     private int currentPointIndex = 0;
-    private Vector3 _direction;
     private bool isWaiting = false;
-    private Transform target; // ���� ��� �������������
-    private Rigidbody2D rb; // ������ �� Rigidbody2D
+    private Rigidbody2D rb;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-
+        rb.gravityScale = 0;
 
         if (points.Length > 0)
         {
@@ -28,16 +28,10 @@ public class MovedMonster : Unit
 
     private void Update()
     {
-        if (target != null)
-        {
-            ChaseTarget();
-        }
-        else if (points.Length > 0 && !isWaiting)
+        if (!isWaiting && points.Length > 0)
         {
             Move();
         }
-        CheckForTarget();
-
     }
 
     private void OnTriggerEnter2D(Collider2D boxCollider2D)
@@ -53,72 +47,63 @@ public class MovedMonster : Unit
             }
             else
             {
-                character.HealthBar.TakeDamage(1);
+               
+                character.ReceiveDamage(); 
             }
         }
     }
 
     private void Move()
     {
-        transform.position = Vector3.MoveTowards(transform.position, points[currentPointIndex].position, speed * Time.deltaTime);
-
-        if (Vector3.Distance(transform.position, points[currentPointIndex].position) < 0.1F)
+        if (IsOnTile())
         {
-            StartCoroutine(WaitAtPoint());
-        }
-    }
+            OnStartMoving();
+            Vector3 targetPosition = points[currentPointIndex].position;
 
-    private void ChaseTarget()
-    {
-        transform.position = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
 
-        if (Vector3.Distance(transform.position, target.position) < 0.1F)
-        {
-            // ������ ����� ���������
-            Character character = target.GetComponent<Character>();
-            if (character != null)
+            if (Vector3.Distance(transform.position, targetPosition) < 0.1F)
             {
-                character.HealthBar.TakeDamage(1);
+                StartCoroutine(WaitAtPoint());
             }
+        }
+        else
+        {
+            OnStopMoving();
         }
     }
 
     private IEnumerator WaitAtPoint()
     {
+        OnStopMoving();
         isWaiting = true;
-        yield return new WaitForSeconds(2.0f); 
+        yield return new WaitForSeconds(2.0f);
         SetNextPoint();
         isWaiting = false;
     }
 
     private void SetNextPoint()
     {
-        currentPointIndex = Random.Range(0, points.Length); 
-        _direction = (points[currentPointIndex].position - transform.position).normalized;
+        currentPointIndex = (currentPointIndex + 1) % points.Length;
     }
 
-    private void CheckForTarget()
+    private bool IsOnTile()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, visionRadius);
-        foreach (var hit in hits)
-        {
-            Character character = hit.GetComponent<Character>();
-            if (character != null)
-            {
-                target = character.transform; // ������������� ���� ��� �������������
-                break;
-            }
-        }
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 1.5f, groundLayer);
+        return hit.collider != null;
     }
+
 
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, visionRadius); // ����������� ������� ��������� � ���������
+        Gizmos.DrawWireSphere(transform.position, visionRadius);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(transform.position, transform.position + Vector3.down * 1.5f);
     }
 
-    // ������ ��� ������������ �������
     public void OnStartMoving()
     {
         animator.SetBool("isMoving", true);

@@ -2,17 +2,27 @@ using UnityEngine;
 
 public class Balancer : MonoBehaviour
 {
-    public float force = 20.0f;
+    public float force = 20.0f; // Сила отталкивания
+    public float Speed = 100.0f; // Угловая скорость
     private Rigidbody2D rb;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        rb.angularVelocity = Speed;
+    }
+
+    void Update()
+    {
+        // Поддерживаем угловую скорость
+        if (Mathf.Abs(rb.angularVelocity) < Speed)
+        {
+            rb.angularVelocity = Speed * Mathf.Sign(rb.angularVelocity);
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-       
         Character character = collision.gameObject.GetComponent<Character>();
 
         if (character != null)
@@ -21,16 +31,14 @@ public class Balancer : MonoBehaviour
 
             if (characterRb != null)
             {
-                
+              
                 Vector2 direction = (transform.position - collision.transform.position).normalized;
 
               
                 characterRb.AddForce(direction * force, ForceMode2D.Impulse);
 
-        
-                
-                
-                character.ReceiveDamage(); 
+           
+                character.ReceiveDamage();
             }
         }
     }

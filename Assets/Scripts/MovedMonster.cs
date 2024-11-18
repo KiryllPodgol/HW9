@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class MovedMonster : Unit
+public class MovedRobot : Unit
 {
     public float speed = 2.0F;
     public Transform[] points;
@@ -62,7 +62,7 @@ public class MovedMonster : Unit
 
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
 
-            if (Vector3.Distance(transform.position, targetPosition) < 0.1F)
+            if (Vector3.Distance(transform.position, targetPosition) < 0.2F)
             {
                 StartCoroutine(WaitAtPoint());
             }

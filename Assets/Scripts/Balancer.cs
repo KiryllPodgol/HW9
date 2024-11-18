@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Balancer : MonoBehaviour
 {
-    public float force = 20.0f; 
+    public float force = 20.0f;
     private Rigidbody2D rb;
 
     void Start()
@@ -17,18 +17,20 @@ public class Balancer : MonoBehaviour
 
         if (character != null)
         {
-          
             Rigidbody2D characterRb = character.GetComponent<Rigidbody2D>();
 
             if (characterRb != null)
             {
-              
+                
                 Vector2 direction = (transform.position - collision.transform.position).normalized;
 
-                // ��������� ���� ������������
+              
                 characterRb.AddForce(direction * force, ForceMode2D.Impulse);
 
+        
                 
+                
+                character.ReceiveDamage(); 
             }
         }
     }

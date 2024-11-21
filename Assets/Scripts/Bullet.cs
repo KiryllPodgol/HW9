@@ -23,6 +23,7 @@ public class Bullet : MonoBehaviour
 
     private SpriteRenderer _sprite;
     private Rigidbody2D _rigidbody;
+    private float _lifetime = 1.0F;
 
     private void Awake()
     {
@@ -32,12 +33,12 @@ public class Bullet : MonoBehaviour
 
     private void Start()
     {
-        Destroy(gameObject, 1.4F);
+        Destroy(gameObject, _lifetime);
 
-        // Убедитесь, что Rigidbody2D не равен null
+      
         if (_rigidbody != null)
         {
-            _rigidbody.linearVelocity = _direction * _speed; // Установите начальную скорость
+            _rigidbody.linearVelocity = _direction * _speed; 
         }
         else
         {

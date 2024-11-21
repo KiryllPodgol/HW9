@@ -30,10 +30,7 @@ public class Character : Unit
     private Vector2 _moveInput;
     private float _lastShootTime;
 
-   
-    private InputAction _moveAction;
-    private InputAction _jumpAction;
-    private InputAction _shootAction;
+ 
 
     private CharState State
     {
@@ -79,43 +76,18 @@ public class Character : Unit
 
     private void OnEnable()
     {
-        if (_input!=null)
+        if (_input == null)
         {
             _input = new InputAsset();
         }
+
+        _input.Enable();
         _input.Gameplay.Jump.performed += Jump_performed;
-        _input.Enable();
         _input.Gameplay.Shoot.performed += Shoot_performed;
-        _input.Enable();
-        _input.Gameplay.Move.performed += Move_performed;
-        _input.Enable();
-        _input.Gameplay.Move.canceled += Move_canceled;
-        _input.Enable();
     }
 
-    private void Move_canceled(InputAction.CallbackContext obj)
-    {
-        _moveInput = Vector2.zero;
-    }
 
-    private void Move_performed(InputAction.CallbackContext obj)
-    {
-        float currentVerticalSpeed = _rigidbody.linearVelocity.y;
-
-        Vector2 velocity = new Vector2(_moveInput.x * _speed, currentVerticalSpeed);
-
-        _rigidbody.linearVelocity = velocity;
-
-
-        if (_moveInput.x != 0)
-            _sprite.flipX = _moveInput.x < 0.0f;
-
-        if (_isGrounded && Mathf.Abs(_moveInput.x) > Mathf.Epsilon)
-        {
-            State = CharState.Move;
-        }
-    }
-
+ 
     private void Shoot_performed(InputAction.CallbackContext obj)
     {
         if (Time.time - _lastShootTime < _shootCooldown) return;
@@ -152,8 +124,7 @@ public class Character : Unit
         }
         _input.Gameplay.Jump.performed -= Jump_performed;
         _input.Gameplay.Shoot.performed -= Shoot_performed;
-        _input.Gameplay.Move.performed -= Move_performed;
-        _input.Gameplay.Move.canceled -= Move_canceled;
+        
         _input.Disable();
     }
 
@@ -161,11 +132,26 @@ public class Character : Unit
     {
         CheckGround();
 
-       
+        float currentVerticalSpeed = _rigidbody.linearVelocity.y;
+
+        _moveInput = _input.Gameplay.Move.ReadValue<Vector2>();
+        Vector2 velocity = new Vector2(_moveInput.x * _speed, currentVerticalSpeed);
+
+        _rigidbody.linearVelocity = velocity;
+
+
+        if (_moveInput.x != 0)
+            _sprite.flipX = _moveInput.x < 0.0f;
+
+        if (_isGrounded && Mathf.Abs(_moveInput.x) > Mathf.Epsilon)
+        {
+            State = CharState.Move;
+        }
 
         if (_isGrounded && Mathf.Abs(_moveInput.x) < Mathf.Epsilon)
-            State = CharState.Idle; 
+            State = CharState.Idle;
     }
+
     private void Update()
     {
         

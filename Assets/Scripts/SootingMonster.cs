@@ -7,13 +7,12 @@ public class ShootingMonster : Unit
     private float shootRate = 2.0F;
     [SerializeField]
     private Color bulletColor = Color.white;
-
+    [SerializeField]
     private Bullet bulletPrefab;
 
     protected void Start()
     {
-        bulletPrefab = Resources.Load<Bullet>("Bullet");
-        
+      
         StartCoroutine(ShootRoutine());
     }
 
@@ -41,7 +40,7 @@ public class ShootingMonster : Unit
 
     private void OnTriggerEnter2D(Collider2D collider)
     {
-        // Проверяем, является ли столкнувшийся объект пулей
+
         Bullet bullet = collider.GetComponent<Bullet>();
         if (bullet && bullet.Parent != gameObject)
         {

@@ -19,8 +19,8 @@ public class Character : Unit
     [SerializeField] private Transform _respawnPoint;
     [SerializeField] private HealthBar _healthBar;
     [SerializeField] private DeathScreen _deathScreen;
-    [SerializeField] private Bullet _bulletPrefab;
-    [SerializeField] private Transform _bulletSpawnPoint;
+    [SerializeField] private Bullet _bullet;
+    [SerializeField] private Transform _bulletFirePoint;
 
     private int _lives = MaxLives;
     private Rigidbody2D _rigidbody;
@@ -29,8 +29,6 @@ public class Character : Unit
     private bool _isGrounded;
     private Vector2 _moveInput;
     private float _lastShootTime;
-
- 
 
     private CharState State
     {
@@ -54,24 +52,14 @@ public class Character : Unit
         _rigidbody = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
         _sprite = GetComponentInChildren<SpriteRenderer>();
-
-
-
-    
-   
-
-   
         ValidateReferences();
     }
-
-   
-
     private void ValidateReferences()
     {
         if (_healthBar == null) Debug.LogError("HealthBar is not assigned in the Inspector!");
         if (_deathScreen == null) Debug.LogError("DeathScreen is not assigned in the Inspector!");
-        if (_bulletPrefab == null) Debug.LogError("BulletPrefab is not assigned in the Inspector!");
-        if (_bulletSpawnPoint == null) Debug.LogError("BulletSpawnPoint is not assigned in the Inspector!");
+        if (_bullet == null) Debug.LogError("BulletPrefab is not assigned in the Inspector!");
+        if (_bulletFirePoint == null) Debug.LogError("BulletSpawnPoint is not assigned in the Inspector!");
     }
 
     private void OnEnable()
@@ -86,24 +74,26 @@ public class Character : Unit
         _input.Gameplay.Shoot.performed += Shoot_performed;
     }
 
-
- 
     private void Shoot_performed(InputAction.CallbackContext obj)
     {
-        if (Time.time - _lastShootTime < _shootCooldown) return;
-
-        Vector3 bulletPosition =
-            (_bulletSpawnPoint != null) ?
-            _bulletSpawnPoint.position :
-            transform.position + new Vector3(0, BulletOffsetY, 0);
-
-        Bullet newBullet = Instantiate(_bulletPrefab, bulletPosition, Quaternion.identity);
-
-        newBullet.Parent = gameObject;
-        newBullet.Direction = newBullet.transform.right * (_sprite.flipX ? -1.0f : 1.0f);
+       
+        if (Time.time - _lastShootTime < _shootCooldown)
+            return;
 
         _lastShootTime = Time.time;
+
+    
+        Bullet newBullet = Instantiate(_bullet, _bulletFirePoint.position, Quaternion.identity);
+
+      
+        Vector3 bulletDirection = _sprite.flipX ? Vector3.left : Vector3.right;
+        newBullet.Direction = bulletDirection;
+
+        newBullet.Parent = gameObject;
+
+       
     }
+
 
     private void Jump_performed(InputAction.CallbackContext ctn)
     {
@@ -124,7 +114,6 @@ public class Character : Unit
         }
         _input.Gameplay.Jump.performed -= Jump_performed;
         _input.Gameplay.Shoot.performed -= Shoot_performed;
-        
         _input.Disable();
     }
 
@@ -133,13 +122,9 @@ public class Character : Unit
         CheckGround();
 
         float currentVerticalSpeed = _rigidbody.linearVelocity.y;
-
         _moveInput = _input.Gameplay.Move.ReadValue<Vector2>();
         Vector2 velocity = new Vector2(_moveInput.x * _speed, currentVerticalSpeed);
-
         _rigidbody.linearVelocity = velocity;
-
-
         if (_moveInput.x != 0)
             _sprite.flipX = _moveInput.x < 0.0f;
 
@@ -154,16 +139,12 @@ public class Character : Unit
 
     private void Update()
     {
-        
         if (transform.position.y < RespawnYThreshold)
         {
             ReceiveDamage();
             Respawn();
         }
     }
-
-
-
 
     public override void ReceiveDamage()
     {
@@ -177,7 +158,6 @@ public class Character : Unit
 
     private void HandleDamageRebound()
     {
-
         _rigidbody.linearVelocity = Vector2.zero;
         _rigidbody.AddForce(Vector2.up * ReboundForce, ForceMode2D.Impulse);
     }
@@ -200,7 +180,6 @@ public class Character : Unit
 
     private void PlayerDied()
     {
-
         _deathScreen?.PlayerDied();
         Time.timeScale = 0;
     }

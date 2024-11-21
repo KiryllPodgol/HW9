@@ -9,6 +9,7 @@ public class Character : Unit
     private const float JumpForce = 15.0f;
     private const float BulletOffsetY = 0.8f;
     private const float ReboundForce = 8.0f;
+    InputAsset _input;
 
     [Header("Settings")]
     [SerializeField] private float _speed = 3.0f;
@@ -60,29 +61,13 @@ public class Character : Unit
 
 
     
-        InitializeInputActions();
+   
 
    
         ValidateReferences();
     }
 
-    private void InitializeInputActions()
-    {
-
-        InputActionMap gameplayActionMap = InputSystem.actions.FindActionMap("Gameplay");
-
-        if (gameplayActionMap != null)
-        {
-
-            _moveAction = gameplayActionMap["Move"];
-            _jumpAction = gameplayActionMap["Jump"];
-            _shootAction = gameplayActionMap["Shoot"];
-        }
-        else
-        {
-            Debug.LogError("Gameplay Action Map not found!");
-        }
-    }
+   
 
     private void ValidateReferences()
     {
@@ -94,52 +79,36 @@ public class Character : Unit
 
     private void OnEnable()
     {
-        _jumpAction.performed += OnJump;
-        _jumpAction.Enable();
-        _shootAction.performed += OnShoot;
-       
-        _moveAction.Enable();
-    }
-
-    private void OnDisable()
-    {
-
-        _jumpAction.performed -= OnJump;
-        _jumpAction.Disable();
-        _shootAction.performed -= OnShoot;
-        _shootAction.Disable();
-    }
-
-    private void FixedUpdate()
-    {
-        CheckGround();
-        Move();
-    }
-
-    private void Update()
-    {
-        if (_isGrounded) State = CharState.Idle;
-
-        // Проверка на падение ниже уровня
-        if (transform.position.y < RespawnYThreshold)
+        if (_input!=null)
         {
-            ReceiveDamage();
-            Respawn();
+            _input = new InputAsset();
         }
+        _input.Gameplay.Jump.performed += Jump_performed;
+        _input.Enable();
+        _input.Gameplay.Shoot.performed += Shoot_performed;
+        _input.Enable();
+        _input.Gameplay.Move.performed += Move_performed;
+        _input.Enable();
+        _input.Gameplay.Move.canceled += Move_canceled;
+        _input.Enable();
     }
 
-    private void Move()
+    private void Move_canceled(InputAction.CallbackContext obj)
     {
-        _moveInput = _moveAction.ReadValue<Vector2>();
-        Debug.Log($"Move Input: {_moveInput}");
+        _moveInput = Vector2.zero;
+    }
 
-        Vector3 direction = new(_moveInput.x, 0, 0);
+    private void Move_performed(InputAction.CallbackContext obj)
+    {
+        float currentVerticalSpeed = _rigidbody.linearVelocity.y;
 
-        // Используем Translate для движения
-        transform.Translate(_speed * Time.deltaTime * direction);
+        Vector2 velocity = new Vector2(_moveInput.x * _speed, currentVerticalSpeed);
 
-        // Переключаем анимацию
-        _sprite.flipX = direction.x < 0.0f;
+        _rigidbody.linearVelocity = velocity;
+
+
+        if (_moveInput.x != 0)
+            _sprite.flipX = _moveInput.x < 0.0f;
 
         if (_isGrounded && Mathf.Abs(_moveInput.x) > Mathf.Epsilon)
         {
@@ -147,17 +116,7 @@ public class Character : Unit
         }
     }
 
-    private void OnJump(InputAction.CallbackContext context)
-    {
-        if (_isGrounded)
-        {
-            // Применение силы прыжка
-            _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
-            State = CharState.Jump; // Изменение состояния при прыжке
-        }
-    }
-
-    private void OnShoot(InputAction.CallbackContext context)
+    private void Shoot_performed(InputAction.CallbackContext obj)
     {
         if (Time.time - _lastShootTime < _shootCooldown) return;
 
@@ -173,6 +132,52 @@ public class Character : Unit
 
         _lastShootTime = Time.time;
     }
+
+    private void Jump_performed(InputAction.CallbackContext ctn)
+    {
+        if (_isGrounded)
+        {
+
+            _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
+            State = CharState.Jump;
+        }
+    }
+
+    private void OnDisable()
+    {
+
+        if (_input == null)
+        {
+            return;
+        }
+        _input.Gameplay.Jump.performed -= Jump_performed;
+        _input.Gameplay.Shoot.performed -= Shoot_performed;
+        _input.Gameplay.Move.performed -= Move_performed;
+        _input.Gameplay.Move.canceled -= Move_canceled;
+        _input.Disable();
+    }
+
+    private void FixedUpdate()
+    {
+        CheckGround();
+
+       
+
+        if (_isGrounded && Mathf.Abs(_moveInput.x) < Mathf.Epsilon)
+            State = CharState.Idle; 
+    }
+    private void Update()
+    {
+        
+        if (transform.position.y < RespawnYThreshold)
+        {
+            ReceiveDamage();
+            Respawn();
+        }
+    }
+
+
+
 
     public override void ReceiveDamage()
     {

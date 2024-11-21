@@ -184,9 +184,8 @@ public class Character : Unit
 
     private void CheckGround()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.3f);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.1f);
         _isGrounded = colliders.Length > 1;
-
         if (!_isGrounded) State = CharState.Jump;
     }
 

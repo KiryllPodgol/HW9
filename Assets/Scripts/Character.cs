@@ -1,175 +1,224 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
+using UnityEngine.InputSystem;
 
 public class Character : Unit
 {
-    [SerializeField]
-    private int lives = 3;
-    public Transform respawnPoint;
+    private const float RespawnYThreshold = -12f;
+    private const int MaxLives = 3;
+    private const float JumpForce = 15.0f;
+    private const float BulletOffsetY = 0.8f;
+    private const float ReboundForce = 8.0f;
 
-    public int Lives
-    {
-        get { return lives; }
-        set
-        {
-            if (value < 3) lives = value;
-            healthBar.TakeDamage(lives - value);
-        }
-    }
+    [Header("Settings")]
+    [SerializeField] private float _speed = 3.0f;
+    [SerializeField] private float _shootCooldown = 0.5f;
 
-    [FormerlySerializedAs("HealthBar")] public HealthBar healthBar;
-    public DeathScreen deathScreen;
+    [Header("References")]
+    [SerializeField] private Transform _respawnPoint;
+    [SerializeField] private HealthBar _healthBar;
+    [SerializeField] private DeathScreen _deathScreen;
+    [SerializeField] private Bullet _bulletPrefab;
+    [SerializeField] private Transform _bulletSpawnPoint;
 
-    public float speed = 3.0F;
-    private float _jumpForce = 15.0F;
-    private bool _isGrounded = false;
-    private Bullet _bullet;
-
-    private CharState State
-    {
-        get { return (CharState)_animator.GetInteger("State"); }
-        set { _animator.SetInteger("State", (int)value); }
-    }
-
+    private int _lives = MaxLives;
     private Rigidbody2D _rigidbody;
     private Animator _animator;
     private SpriteRenderer _sprite;
+    private bool _isGrounded;
+    private Vector2 _moveInput;
+    private float _lastShootTime;
+
+   
+    private InputAction _moveAction;
+    private InputAction _jumpAction;
+    private InputAction _shootAction;
+
+    private CharState State
+    {
+        get => (CharState)_animator.GetInteger("State");
+        set => _animator.SetInteger("State", (int)value);
+    }
+
+    public int Lives
+    {
+        get => _lives;
+        set
+        {
+            if (value < 0 || value > MaxLives) return;
+            _healthBar?.TakeDamage(_lives - value);
+            _lives = value;
+        }
+    }
 
     private void Awake()
     {
-        healthBar = FindFirstObjectByType<HealthBar>();
-        if (healthBar == null)
-        {
-            
-        }
         _rigidbody = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
         _sprite = GetComponentInChildren<SpriteRenderer>();
 
-        _bullet = Resources.Load<Bullet>("Bullet");
 
-        deathScreen = FindFirstObjectByType<DeathScreen>();
-        if (deathScreen == null)
+
+    
+        InitializeInputActions();
+
+   
+        ValidateReferences();
+    }
+
+    private void InitializeInputActions()
+    {
+
+        InputActionMap gameplayActionMap = InputSystem.actions.FindActionMap("Gameplay");
+
+        if (gameplayActionMap != null)
         {
-           
+
+            _moveAction = gameplayActionMap["Move"];
+            _jumpAction = gameplayActionMap["Jump"];
+            _shootAction = gameplayActionMap["Shoot"];
         }
+        else
+        {
+            Debug.LogError("Gameplay Action Map not found!");
+        }
+    }
+
+    private void ValidateReferences()
+    {
+        if (_healthBar == null) Debug.LogError("HealthBar is not assigned in the Inspector!");
+        if (_deathScreen == null) Debug.LogError("DeathScreen is not assigned in the Inspector!");
+        if (_bulletPrefab == null) Debug.LogError("BulletPrefab is not assigned in the Inspector!");
+        if (_bulletSpawnPoint == null) Debug.LogError("BulletSpawnPoint is not assigned in the Inspector!");
+    }
+
+    private void OnEnable()
+    {
+        _jumpAction.performed += OnJump;
+        _jumpAction.Enable();
+        _shootAction.performed += OnShoot;
+       
+        _moveAction.Enable();
+    }
+
+    private void OnDisable()
+    {
+
+        _jumpAction.performed -= OnJump;
+        _jumpAction.Disable();
+        _shootAction.performed -= OnShoot;
+        _shootAction.Disable();
     }
 
     private void FixedUpdate()
     {
         CheckGround();
+        Move();
     }
 
     private void Update()
     {
         if (_isGrounded) State = CharState.Idle;
 
-        if (Input.GetButtonDown("Fire1")) Shoot();
-        if (Input.GetButton("Horizontal")) Move();
-        if (_isGrounded && Input.GetButtonDown("Jump")) Jump();
-
-        // Проверка на падение с платформы
-        if (transform.position.y < -12)
+        // Проверка на падение ниже уровня
+        if (transform.position.y < RespawnYThreshold)
         {
-            ReceiveDamage(); // Вызываем метод ReceiveDamage при падении
-            Respawn(); // Возвращаем на точку респавна после получения урона
+            ReceiveDamage();
+            Respawn();
         }
     }
 
     private void Move()
     {
-        Vector3 direction = transform.right * Input.GetAxis("Horizontal");
+        _moveInput = _moveAction.ReadValue<Vector2>();
+        Debug.Log($"Move Input: {_moveInput}");
 
-        transform.position = Vector3.MoveTowards(transform.position, transform.position + direction, speed * Time.deltaTime);
+        Vector3 direction = new(_moveInput.x, 0, 0);
 
-        _sprite.flipX = direction.x < 0.0F;
+        // Используем Translate для движения
+        transform.Translate(_speed * Time.deltaTime * direction);
 
-        if (_isGrounded) State = CharState.Move;
+        // Переключаем анимацию
+        _sprite.flipX = direction.x < 0.0f;
+
+        if (_isGrounded && Mathf.Abs(_moveInput.x) > Mathf.Epsilon)
+        {
+            State = CharState.Move;
+        }
     }
 
-    private void Jump()
+    private void OnJump(InputAction.CallbackContext context)
     {
-        _rigidbody.AddForce(transform.up * _jumpForce, ForceMode2D.Impulse);
+        if (_isGrounded)
+        {
+            // Применение силы прыжка
+            _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
+            State = CharState.Jump; // Изменение состояния при прыжке
+        }
     }
 
-    private void Shoot()
+    private void OnShoot(InputAction.CallbackContext context)
     {
-        Vector3 position = transform.position; position.y += 0.8F;
-        Bullet newBullet = Instantiate(_bullet, position, _bullet.transform.rotation) as Bullet;
+        if (Time.time - _lastShootTime < _shootCooldown) return;
+
+        Vector3 bulletPosition =
+            (_bulletSpawnPoint != null) ?
+            _bulletSpawnPoint.position :
+            transform.position + new Vector3(0, BulletOffsetY, 0);
+
+        Bullet newBullet = Instantiate(_bulletPrefab, bulletPosition, Quaternion.identity);
 
         newBullet.Parent = gameObject;
-        newBullet.Direction = newBullet.transform.right * (_sprite.flipX ? -1.0F : 1.0F);
+        newBullet.Direction = newBullet.transform.right * (_sprite.flipX ? -1.0f : 1.0f);
+
+        _lastShootTime = Time.time;
     }
 
     public override void ReceiveDamage()
     {
-        healthBar.TakeDamage(1); // Уменьшаем здоровье на 1
+        Lives--;
 
-        Lives--; // Уменьшаем количество жизней
+        if (Lives <= 0)
+            PlayerDied();
+        else
+            HandleDamageRebound();
+    }
 
-        if (lives <= 0)
-        {
-            PlayerDied(); // Вызываем метод PlayerDied, если жизни закончились
-            return;
-        }
+    private void HandleDamageRebound()
+    {
 
-        _rigidbody.linearVelocity = Vector2.zero; // Останавливаем движение
-        _rigidbody.AddForce(transform.up * 8.0F, ForceMode2D.Impulse);
+        _rigidbody.linearVelocity = Vector2.zero;
+        _rigidbody.AddForce(Vector2.up * ReboundForce, ForceMode2D.Impulse);
     }
 
     private void CheckGround()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.3F);
-
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.3f);
         _isGrounded = colliders.Length > 1;
 
         if (!_isGrounded) State = CharState.Jump;
     }
 
-    public void OnTriggerEnter2D(Collider2D collider)
+    private void Respawn()
     {
-        Bullet bullet = collider.gameObject.GetComponent<Bullet>();
-        if (bullet && bullet.Parent != gameObject)
+        if (_respawnPoint != null)
         {
-            ReceiveDamage(); // Обработка урона от пули
-            Respawn(); // Возвращаем на точку респавна после получения урона от пули
-            return;
-        }
-
-        ExtraLife extraLife = collider.gameObject.GetComponent<ExtraLife>();
-        if (extraLife)
-        {
-            Lives++; // Увеличиваем жизни при столкновении с объектом ExtraLife
-            Destroy(extraLife.gameObject); // Уничтожаем объект ExtraLife после сбора
+            transform.position = _respawnPoint.position;
+            _rigidbody.linearVelocity = Vector2.zero;
         }
     }
 
     private void PlayerDied()
     {
-        if (deathScreen != null)
-        {
-            deathScreen.PlayerDied(); // Вызываем экран смерти
-            Time.timeScale = 0; // Останавливаем время при смерти
-            return;
-        }
 
-        Time.timeScale = 1; // Устанавливаем time scale в 1 только если deathScreen отсутствует
-    }
-
-    private void Respawn()
-    {
-        if (respawnPoint != null)
-        {
-            transform.position = respawnPoint.position; // Перемещаем персонажа на позицию респавна
-            _rigidbody.linearVelocity = Vector2.zero; // Сбрасываем скорость
-        }
+        _deathScreen?.PlayerDied();
+        Time.timeScale = 0;
     }
 
     public void RestartGame()
     {
         Time.timeScale = 1;
-        lives = 3;
+        Lives = MaxLives;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

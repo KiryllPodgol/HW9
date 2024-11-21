@@ -7,13 +7,13 @@ public class Character : Unit
     private const float RespawnYThreshold = -12f;
     private const int MaxLives = 3;
     private const float JumpForce = 15.0f;
-    private const float BulletOffsetY = 0.8f;
     private const float ReboundForce = 8.0f;
+  
     InputAsset _input;
 
     [Header("Settings")]
     [SerializeField] private float _speed = 3.0f;
-    [SerializeField] private float _shootCooldown = 0.5f;
+    [SerializeField] private float _shootCooldown = 0.2f;
 
     [Header("References")]
     [SerializeField] private Transform _respawnPoint;
@@ -76,24 +76,32 @@ public class Character : Unit
 
     private void Shoot_performed(InputAction.CallbackContext obj)
     {
-       
+
+
         if (Time.time - _lastShootTime < _shootCooldown)
             return;
 
         _lastShootTime = Time.time;
 
-    
-        Bullet newBullet = Instantiate(_bullet, _bulletFirePoint.position, Quaternion.identity);
+        if (_bullet == null)
+        {
+            Debug.LogError("Префаб пули не назначен.");
+            return;
+        }
 
-      
-        Vector3 bulletDirection = _sprite.flipX ? Vector3.left : Vector3.right;
-        newBullet.Direction = bulletDirection;
+        Bullet newBullet = Instantiate(_bullet, _bulletFirePoint.position, Quaternion.identity).GetComponent<Bullet>();
 
-        newBullet.Parent = gameObject;
-
-       
+        if (newBullet != null)
+        {
+            Vector3 bulletDirection = _sprite.flipX ? Vector3.left : Vector3.right;
+            newBullet.Direction = bulletDirection;
+            newBullet.Parent = gameObject;
+        }
+        else
+        {
+            Debug.LogError("Не удалось создать экземпляр пули.");
+        }
     }
-
 
     private void Jump_performed(InputAction.CallbackContext ctn)
     {

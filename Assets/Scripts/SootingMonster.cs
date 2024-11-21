@@ -12,7 +12,6 @@ public class ShootingMonster : Unit
 
     protected void Start()
     {
-      
         StartCoroutine(ShootRoutine());
     }
 
@@ -40,20 +39,28 @@ public class ShootingMonster : Unit
 
     private void OnTriggerEnter2D(Collider2D collider)
     {
-
         Bullet bullet = collider.GetComponent<Bullet>();
         if (bullet && bullet.Parent != gameObject)
         {
             ReceiveDamage();
-            Destroy(bullet.gameObject); 
+            Destroy(bullet.gameObject);
             return;
         }
 
-    
         Character character = collider.GetComponent<Character>();
-        if (character)
+        if (character != null)
         {
-            character.ReceiveDamage();
+            if (Mathf.Abs(character.transform.position.x - transform.position.x) < 0.3F &&
+                character.transform.position.y > transform.position.y)
+            {
+                Destroy(gameObject);
+
+            }
+            else
+            {
+                character.ReceiveDamage();
+                Destroy(gameObject);
+            }
         }
     }
 }

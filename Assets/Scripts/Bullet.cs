@@ -13,7 +13,7 @@ public class Bullet : MonoBehaviour
     private Vector3 _direction;
     public Vector3 Direction
     {
-        set => _direction = value.normalized; // ����������� �����������
+        set => _direction = value.normalized;
     }
 
     public Color Color
@@ -27,17 +27,21 @@ public class Bullet : MonoBehaviour
     private void Awake()
     {
         _sprite = GetComponentInChildren<SpriteRenderer>();
-        _rigidbody = GetComponent<Rigidbody2D>(); // �������� ��������� Rigidbody2D
+        _rigidbody = GetComponent<Rigidbody2D>();
     }
 
     private void Start()
     {
         Destroy(gameObject, 1.4F);
 
-        // ������������� �������� ���� ��� ������
+        // Убедитесь, что Rigidbody2D не равен null
         if (_rigidbody != null)
         {
-            _rigidbody.linearVelocity = _direction * _speed; // ��������� �������� � Rigidbody
+            _rigidbody.linearVelocity = _direction * _speed; // Установите начальную скорость
+        }
+        else
+        {
+            Debug.LogError("Rigidbody2D не найден на пуле.");
         }
     }
 
@@ -48,8 +52,7 @@ public class Bullet : MonoBehaviour
         if (unit && unit.gameObject != _parent)
         {
             Destroy(gameObject);
-            // ����� ����� �������� ������ ��� ��������� �����
-            unit.ReceiveDamage(); // ��������������, ��� � ������ Unit ���� ����� TakeDamage()
+            unit.ReceiveDamage();
         }
     }
 }

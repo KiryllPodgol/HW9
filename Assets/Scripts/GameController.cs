@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GameСontroller: MonoBehaviour
+public class GameСontroller : MonoBehaviour
 {
     [SerializeField] private GameObject characterPrefab; // Префаб персонажа
     [SerializeField] private Transform playerSpawnPoint; // Позиция спавна персонажа
@@ -35,14 +35,12 @@ public class GameСontroller: MonoBehaviour
         }
 
 
-        HealthBar healthBarInstantiated = Instantiate(healthBar, Vector3.zero, Quaternion.identity); // Создаём хп бар, чтобы он вообще существовал :)
-
         // Создание персонажа
         GameObject character = Instantiate(characterPrefab, playerSpawnPoint.position, Quaternion.identity);
         Character characterScript = character.GetComponent<Character>();
 
         // Инициализация HP бара и respawn точки
-        characterScript.healthBar = healthBarInstantiated;
+        characterScript.healthBar = healthBar;
         characterScript.respawnPoint = respawnPoint;
 
 

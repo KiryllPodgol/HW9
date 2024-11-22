@@ -16,9 +16,21 @@ public class Character : Unit
     [SerializeField] private float _shootCooldown = 0.2f;
 
     [Header("References")]
-    [SerializeField] private Transform _respawnPoint;
     [SerializeField] private HealthBar _healthBar;
-    [SerializeField] private DeathScreen _deathScreen;
+    [SerializeField] private Transform _respawnPoint;
+
+    public HealthBar healthBar
+    {
+        get { return _healthBar; }
+        set { _healthBar = value; }
+    }
+
+    public Transform respawnPoint
+    {
+        get { return _respawnPoint; }
+        set { _respawnPoint = value; }
+    }
+
     [SerializeField] private Bullet _bullet;
     [SerializeField] private Transform _bulletFirePoint;
 
@@ -57,7 +69,6 @@ public class Character : Unit
     private void ValidateReferences()
     {
         if (_healthBar == null) Debug.LogError("HealthBar is not assigned in the Inspector!");
-        if (_deathScreen == null) Debug.LogError("DeathScreen is not assigned in the Inspector!");
         if (_bullet == null) Debug.LogError("BulletPrefab is not assigned in the Inspector!");
         if (_bulletFirePoint == null) Debug.LogError("BulletSpawnPoint is not assigned in the Inspector!");
     }
@@ -68,7 +79,6 @@ public class Character : Unit
         {
             _input = new InputAsset();
         }
-
         _input.Enable();
         _input.Gameplay.Jump.performed += Jump_performed;
         _input.Gameplay.Shoot.performed += Shoot_performed;
@@ -77,7 +87,6 @@ public class Character : Unit
     private void Shoot_performed(InputAction.CallbackContext obj)
     {
 
-
         if (Time.time - _lastShootTime < _shootCooldown)
             return;
 
@@ -85,7 +94,7 @@ public class Character : Unit
 
         if (_bullet == null)
         {
-            Debug.LogError("Префаб пули не назначен.");
+            Debug.LogError("No bullet prefab has been assigned.");
             return;
         }
 
@@ -99,7 +108,7 @@ public class Character : Unit
         }
         else
         {
-            Debug.LogError("Не удалось создать экземпляр пули.");
+            Debug.LogError("Failed to create a bullet instance.");
         }
     }
 
@@ -188,7 +197,7 @@ public class Character : Unit
 
     private void PlayerDied()
     {
-        _deathScreen?.PlayerDied();
+        DeathScreen.Instance.PlayerDied();
         Time.timeScale = 0;
     }
 

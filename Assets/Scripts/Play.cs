@@ -21,6 +21,6 @@ public class Play : MonoBehaviour
 
     void LoadGameScene()
     {
-        SceneManager.LoadScene("Game"); 
+        SceneManager.LoadScene("GameScene"); 
     }
 }

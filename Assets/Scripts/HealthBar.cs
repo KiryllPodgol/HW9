@@ -19,6 +19,11 @@ public class HealthBar : MonoBehaviour
         _currentHealth -= damage;
         _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth);
         UpdateHearts();
+
+        if (_currentHealth <= 0)
+        {
+            DeathScreen.Instance.PlayerDied();
+        }
     }
 
     private void UpdateHearts()
@@ -44,11 +49,6 @@ public class HealthBar : MonoBehaviour
         {
             _maxHealth++;
             SetMaxHealth(_maxHealth);
-  
-        }
-        else
-        {
-
         }
     }
 }

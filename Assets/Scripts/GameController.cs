@@ -35,14 +35,24 @@ public class GameСontroller : MonoBehaviour
         }
 
 
+        HealthBar healthBarInstantiated = Instantiate(healthBar, Vector3.zero, Quaternion.identity); // Создаём хп бар, чтобы он вообще существовал :)
+
         // Создание персонажа
         GameObject character = Instantiate(characterPrefab, playerSpawnPoint.position, Quaternion.identity);
         Character characterScript = character.GetComponent<Character>();
 
         // Инициализация HP бара и respawn точки
-        characterScript.healthBar = healthBar;
+        characterScript.healthBar = healthBarInstantiated;
         characterScript.respawnPoint = respawnPoint;
-
-
+ 
+        CameraControl cameraControl = Camera.main.GetComponent<CameraControl>();
+        if (cameraControl != null)
+        {
+            cameraControl.target = character.transform;
+        }
+        else
+        {
+            Debug.LogError("CameraControl script not found on the Main Camera!");
+        }
     }
 }

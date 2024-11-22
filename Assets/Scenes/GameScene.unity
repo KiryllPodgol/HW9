@@ -432,7 +432,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -15.088379, y: 63.347626}
+  m_AnchoredPosition: {x: -15.088348, y: 63.347626}
   m_SizeDelta: {x: 30.1768, y: -126.6932}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &101475350
@@ -1833,7 +1833,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -1856,7 +1856,7 @@ Canvas:
   m_RenderMode: 0
   m_Camera: {fileID: 330585545}
   m_PlaneDistance: 100
-  m_PixelPerfect: 0
+  m_PixelPerfect: 1
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
@@ -5312,7 +5312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterPrefab: {fileID: 8361697764827324469, guid: 607a3d0b317f64f4a9a66b5947ee3709, type: 3}
-  spawnPoint: {fileID: 2097388789}
+  playerSpawnPoint: {fileID: 2097388789}
   healthBar: {fileID: 4353391688671989900, guid: aca18effe06cad9469b0b6c6a4a5e8f3, type: 3}
   respawnPoint: {fileID: 1364074682}
 --- !u!4 &2097388789

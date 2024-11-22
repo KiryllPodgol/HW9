@@ -68,7 +68,6 @@ public class Character : Unit
     }
     private void ValidateReferences()
     {
-        if (_healthBar == null) Debug.LogError("HealthBar is not assigned in the Inspector!");
         if (_bullet == null) Debug.LogError("BulletPrefab is not assigned in the Inspector!");
         if (_bulletFirePoint == null) Debug.LogError("BulletSpawnPoint is not assigned in the Inspector!");
     }

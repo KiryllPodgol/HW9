@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Balancer : MonoBehaviour
 {
-    public float force = 20.0f; // Сила отталкивания
+    public float force = 40.0f; // Сила отталкивания
     public float Speed = 100.0f; // Угловая скорость
     private Rigidbody2D rb;
 
@@ -14,7 +14,7 @@ public class Balancer : MonoBehaviour
 
     void Update()
     {
-        // Поддерживаем угловую скорость
+        
         if (Mathf.Abs(rb.angularVelocity) < Speed)
         {
             rb.angularVelocity = Speed * Mathf.Sign(rb.angularVelocity);

@@ -139,7 +139,7 @@ public class Character : Unit
 
         float currentVerticalSpeed = _rigidbody.linearVelocity.y;
         _moveInput = _input.Gameplay.Move.ReadValue<Vector2>();
-        Vector2 velocity = new Vector2(_moveInput.x * _speed, currentVerticalSpeed);
+        Vector2 velocity = new(_moveInput.x * _speed, currentVerticalSpeed);
         _rigidbody.linearVelocity = velocity;
         if (_moveInput.x != 0)
             _sprite.flipX = _moveInput.x < 0.0f;

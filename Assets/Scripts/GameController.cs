@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class GameСontroller : MonoBehaviour
 {
-    [SerializeField] private GameObject characterPrefab; // Префаб персонажа
-    [SerializeField] private Transform playerSpawnPoint; // Позиция спавна персонажа
-    [SerializeField] private HealthBar healthBar; // HP бар
-    [SerializeField] private Transform respawnPoint; // Respawn точка
+    [SerializeField] private GameObject characterPrefab;
+    [SerializeField] private Transform playerSpawnPoint; 
+    [SerializeField] private HealthBar healthBar; 
+    [SerializeField] private Transform respawnPoint; 
 
     private void Awake()
     {
-        // Проверка на null
+       
         if (characterPrefab == null)
         {
             Debug.Log("Character prefab is null");
@@ -35,13 +35,11 @@ public class GameСontroller : MonoBehaviour
         }
 
 
-        HealthBar healthBarInstantiated = Instantiate(healthBar, Vector3.zero, Quaternion.identity); // Создаём хп бар, чтобы он вообще существовал :)
+        HealthBar healthBarInstantiated = Instantiate(healthBar, Vector3.zero, Quaternion.identity);
 
-        // Создание персонажа
         GameObject character = Instantiate(characterPrefab, playerSpawnPoint.position, Quaternion.identity);
         Character characterScript = character.GetComponent<Character>();
 
-        // Инициализация HP бара и respawn точки
         characterScript.healthBar = healthBarInstantiated;
         characterScript.respawnPoint = respawnPoint;
  
